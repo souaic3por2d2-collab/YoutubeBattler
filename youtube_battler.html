@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube バトラー</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: monospace; background: #111; color: #e8e8e8; min-height: 100vh; padding: 2rem 1rem; }
+#app { max-width: 700px; margin: 0 auto; }
+h1 { font-size: 11px; letter-spacing: 0.2em; color: #888; text-transform: uppercase; margin-bottom: 2rem; }
+.section-label { font-size: 10px; letter-spacing: 0.12em; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+.input-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+.input-row input {
+  flex: 1; font-family: monospace; font-size: 12px;
+  background: #1a1a1a; border: 0.5px solid #333;
+  border-radius: 8px; padding: 8px 12px; color: #e8e8e8; outline: none;
+}
+.input-row input:focus { border-color: #555; }
+.input-row button {
+  font-family: monospace; font-size: 12px; padding: 8px 16px;
+  background: transparent; border: 0.5px solid #444;
+  border-radius: 8px; color: #e8e8e8; cursor: pointer;
+  white-space: nowrap; transition: background 0.15s;
+}
+.input-row button:hover { background: #222; }
+.arena { display: grid; grid-template-columns: 1fr 48px 1fr; gap: 8px; align-items: center; margin: 1.5rem 0; }
+.card {
+  border-radius: 12px; border: 0.5px solid #2a2a2a;
+  background: #161616; padding: 1rem; min-height: 180px;
+  transition: background 0.05s;
+}
+.card.p1 { border-top: 3px solid #378ADD; }
+.card.p2 { border-top: 3px solid #D85A30; }
+.card-empty { display: flex; align-items: center; justify-content: center; height: 160px; font-size: 12px; color: #555; }
+.vid-title { font-size: 10px; color: #555; margin-bottom: 2px; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fighter-name { font-size: 16px; font-weight: 500; margin-bottom: 12px; letter-spacing: 0.03em; }
+.bars { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: flex; align-items: center; gap: 8px; }
+.bar-label { font-size: 10px; color: #666; width: 28px; letter-spacing: 0.05em; }
+.bar-track { flex: 1; height: 10px; background: #222; border-radius: 5px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 5px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+.bar-val { font-size: 12px; font-weight: 500; width: 30px; text-align: right; color: #ccc; }
+.p1 .bar-fill.hp { background: #378ADD; }
+.p2 .bar-fill.hp { background: #D85A30; }
+.bar-fill.atk { background: #BA7517; }
+.bar-fill.def { background: #3B6D11; }
+.bar-fill.luk { background: #8B44B8; }
+.vs-col { display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; color: #444; }
+.start-btn {
+  display: block; width: 100%; font-family: monospace;
+  font-size: 13px; padding: 10px; margin-bottom: 1.5rem;
+  cursor: pointer; letter-spacing: 0.05em;
+  background: transparent; border: 0.5px solid #444;
+  border-radius: 8px; color: #e8e8e8; transition: background 0.15s;
+}
+.start-btn:hover:not(:disabled) { background: #222; }
+.start-btn:disabled { color: #444; cursor: default; }
+.log-area {
+  background: #0e0e0e; border: 0.5px solid #2a2a2a;
+  border-radius: 12px; padding: 1rem; max-height: 300px; overflow-y: auto;
+}
+.log-line { font-size: 12px; line-height: 1.8; border-bottom: 0.5px solid #1e1e1e; padding: 2px 0; }
+.log-line:last-child { border-bottom: none; }
+.t-turn  { font-size: 10px; color: #555; padding-top: 6px; }
+.t-atk1  { color: #5BA8E8; }
+.t-atk2  { color: #E87A50; }
+.t-dmg   { font-weight: 500; color: #e8e8e8; }
+.t-crit  { color: #FFD700; font-weight: 700; }
+.t-dodge { color: #B06AE8; font-weight: 700; }
+.t-win   { font-size: 14px; font-weight: 500; text-align: center; padding: 10px 0 4px; color: #e8e8e8; }
+.thumb {
+  width: 100%; aspect-ratio: 1/1; object-fit: cover;
+  border-radius: 6px; margin-bottom: 10px; background: #222; display: block;
+}
+.thumb-placeholder {
+  width: 100%; aspect-ratio: 1/1; border-radius: 6px; margin-bottom: 10px;
+  background: #222; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #444;
+}
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(-10px); }
+  30%  { transform: translateX(10px); }
+  45%  { transform: translateX(-7px); }
+  60%  { transform: translateX(7px); }
+  75%  { transform: translateX(-4px); }
+  90%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+@keyframes dodge {
+  0%   { transform: translateY(0); }
+  30%  { transform: translateY(-14px); }
+  60%  { transform: translateY(-14px); }
+  100% { transform: translateY(0); }
+}
+.anim-shake { animation: shake 0.45s ease; }
+.anim-dodge { animation: dodge 0.4s ease; }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>YouTube バトラー — URLからファイターを召喚せよ</h1>
+
+  <div>
+    <div class="section-label">ファイター 1 — YouTube URL</div>
+    <div class="input-row">
+      <input id="u1" type="text" value="https://youtu.be/L_o2VrBJQPQ?si=HqeWvNhq9Eve4JXD" placeholder="https://youtube.com/watch?v=..." />
+      <button onclick="summon(1)">召喚</button>
+    </div>
+  </div>
+  <div>
+    <div class="section-label">ファイター 2 — YouTube URL</div>
+    <div class="input-row">
+      <input id="u2" type="text" value="https://youtu.be/XioV4-uAOFE?si=BJuvT6nuwqmV5s3W" placeholder="https://youtube.com/watch?v=..." />
+      <button onclick="summon(2)">召喚</button>
+    </div>
+  </div>
+
+  <div class="arena">
+    <div id="c1" class="card p1"><div class="card-empty">URLを入力して召喚</div></div>
+    <div class="vs-col">VS</div>
+    <div id="c2" class="card p2"><div class="card-empty">URLを入力して召喚</div></div>
+  </div>
+
+  <button class="start-btn" id="startBtn" onclick="battle()" disabled>バトル開始</button>
+  <div id="log" class="log-area" style="display:none"></div>
+</div>
+
+<script>
+const state = [null, null];
+
+const CHAR_IMAGES = [
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJcAAACGCAYAAADQFRhHAACZ8klEQVR4nLz9d5wlx1nvj7+rOp18JufZ3dmcV6ucbdmWLONsHDFg+xq+cA2XDBcuXODCBWOSweRgYxtj4xwEcpJlW7KytNLuanOYsJPnzMzJ53Sq+v3R58ycmZ1dycD91eu1O6e7q6u7q576wud56imhtSYqCpD8VxYNiP+SmtH1F99es6jGrXLtU5qfLEArjUYThiHCkNTrLm6trpXWoAPa29uFUgrTNBHCQAjRaGjd21zh5bQGIdZW2Liqbvn9H/nWjcqVn/Sfb/uF25Qb/nzBZvQL1mKDh/3Ha4rvs71mkRFhKUC13C9AC1BoQqGjehgYwuDxxx/Xr3vDa7j9jpv5mZ/9aWq1mtahQutowBUajSKak/rynliZrI1ronkUnXnhaXS1b9Ub/LrSaLwQYb24MXyxZaP3Na/+Ki+2mcvbWN+eRiMQLTP5hdt4obNrq1yp4Y3PN4dQoBESDCRCwNziAo899wzaAGmbWLYtbDuG0mrlG1aHp4XDNIlo5Vmi5Y31mqONy8ZEtcqzm8d6pW295s7V2rS86frWxJrWGrVfYExa213b/tXHRayKxWYjrY+9vPkrP3z1nss/+sW10/oJV7r/v6JorVdEopQSrWF+IaePnjhO3Qh57MwJ6r6LO7+MrHmknDjv/dF3M7J1RMjGW0nZwulbxezKsK4X5S/my6/2+/I7Go/csNZ6cnih81e8WwNCoLVGCPEi365xVWu97p/a4NzG/9QG9VXLv43rv/h/V6uvtEarq7yrutJ5hVIKrUKUCgmCAD8I+b0//EMtLKl3vOwm/ZA7px9SS/r9X/64Fp0xLbJx/dDjj+i67+J6LmGoLn+W2uj9XrhfVct1tebv2v7c6J711zbud7XBs682xmrlHb7f8VrfHy1iUYMWkcKKapkXrXQKrbS6lpHrDc+0HrfqtS9mBmw041rbvSIvv5I6sfJZIhJpQiMNiQYyHRmEVBRUjbP5eWTc4cjkGYRwIZ4glslgmjYGECofpQRCmtCY0WsfINeIyqt9zRou0vghrnJX6z1X+uTL+3N9P60XaJfzs3U2yBVav8LINYF=',
+];
+
+const usedIdxs = new Set();
+function randomImageUrl() {
+  const unused = CHAR_IMAGES.map((_,i)=>i).filter(i => !usedIdxs.has(i));
+  const pool = unused.length > 0 ? unused : CHAR_IMAGES.map((_,i)=>i);
+  const idx = pool[Math.floor(Math.random() * pool.length)];
+  usedIdxs.add(idx);
+  if (usedIdxs.size >= CHAR_IMAGES.length) usedIdxs.clear();
+  return CHAR_IMAGES[idx];
+}
+
+function extractId(url) {
+  try {
+    const u = new URL(url);
+    if (u.searchParams.get('v')) return u.searchParams.get('v');
+    const seg = u.pathname.split('/').filter(Boolean);
+    if (seg.length > 0) return seg[0];
+    return url.slice(-11);
+  } catch { return url.slice(-11); }
+}
+
+function hash(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = (h * 33) ^ s.charCodeAt(i);
+  return Math.abs(h >>> 0);
+}
+
+function statFrom(vid, seed) {
+  const h = hash(vid + seed);
+  return (40 + (h % 61)) * (seed === 'hp' ? 10 : 1);
+}
+
+function makeName(vid) {
+  const T = 'BCDFGHJKLMNPQRSTVWXYZ', V = 'AEIOU', h = hash(vid);
+  return T[h%T.length]+V[(h>>4)%V.length]+T[(h>>8)%T.length]+V[(h>>12)%V.length]+T[(h>>16)%T.length];
+}
+
+async function summon(idx) {
+  const url = document.getElementById('u' + idx).value.trim();
+  if (!url) return;
+  const vid = extractId(url);
+  const hp  = statFrom(vid, 'hp');
+  const atk = statFrom(vid, 'atk');
+  const def = statFrom(vid, 'def');
+  const luk = statFrom(vid, 'luk');
+
+  const thumb = randomImageUrl();
+
+  let title = '';
+  try {
+    const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${vid}&format=json`);
+    if (res.ok) { const d = await res.json(); title = d.title || ''; }
+  } catch {}
+
+  state[idx-1] = { vid, url, name: makeName(vid), hp, maxHp: hp, atk, def, luk, thumb, title };
+  renderCard(idx);
+  if (state[0] && state[1]) {
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('log').style.display = 'none';
+  }
+}
+
+function renderCard(idx) {
+  const f = state[idx-1];
+  if (!f) return;
+  const hpPct = Math.round(f.hp / f.maxHp * 100);
+  const imgHtml = f.thumb
+    ? `<img class="thumb" src="${f.thumb}" alt="" onerror="this.style.display='none'">`
+    : `<div class="thumb-placeholder">NO IMAGE</div>`;
+  document.getElementById('c' + idx).innerHTML = `
+    ${imgHtml}
+    <div class="vid-title">${f.title || f.vid}</div>
+    <div class="fighter-name">${f.name}</div>
+    <div class="bars">
+      <div class="bar-row"><div class="bar-label">HP</div><div class="bar-track"><div class="bar-fill hp" id="hpbar${idx}" style="width:${hpPct}%"></div></div><div class="bar-val" id="hpval${idx}">${Math.max(0,f.hp)}</div></div>
+      <div class="bar-row"><div class="bar-label">ATK</div><div class="bar-track"><div class="bar-fill atk" style="width:${f.atk}%"></div></div><div class="bar-val">${f.atk}</div></div>
+      <div class="bar-row"><div class="bar-label">DEF</div><div class="bar-track"><div class="bar-fill def" style="width:${f.def}%"></div></div><div class="bar-val">${f.def}</div></div>
+      <div class="bar-row"><div class="bar-label">LUK</div><div class="bar-track"><div class="bar-fill luk" style="width:${f.luk}%"></div></div><div class="bar-val">${f.luk}</div></div>
+    </div>
+  `;
+}
+
+function updateHpBar(idx, hp, maxHp) {
+  const pct = Math.max(0, Math.round(hp / maxHp * 100));
+  const bar = document.getElementById('hpbar' + idx);
+  const val = document.getElementById('hpval' + idx);
+  if (bar) bar.style.width = pct + '%';
+  if (val) val.textContent = Math.max(0, hp);
+}
+
+const logEl = document.getElementById('log');
+function addLog(html, cls) {
+  const d = document.createElement('div');
+  d.className = 'log-line' + (cls ? ' ' + cls : '');
+  d.innerHTML = html;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function flashCard(idx, isCrit) {
+  return new Promise(resolve => {
+    const card = document.getElementById('c' + idx);
+    const [bg, glow] = isCrit ? ['#4a3a00','#FFD70099'] : idx===1 ? ['#1a3a5c','#378ADD99'] : ['#4a1a0a','#D85A3099'];
+    let n = 0;
+    const iv = setInterval(() => {
+      n++;
+      if (n%2===1) { card.style.background=bg; card.style.boxShadow=`0 0 ${isCrit?20:14}px ${glow}`; }
+      else { card.style.background='#161616'; card.style.boxShadow=''; }
+      if (n>=6) { clearInterval(iv); card.style.background='#161616'; card.style.boxShadow=''; resolve(); }
+    }, 90);
+  });
+}
+
+function triggerAnim(idx, cls) {
+  return new Promise(resolve => {
+    const card = document.getElementById('c' + idx);
+    card.classList.remove(cls);
+    void card.offsetWidth;
+    card.classList.add(cls);
+    card.addEventListener('animationend', () => { card.classList.remove(cls); resolve(); }, { once: true });
+  });
+}
+
+async function battle() {
+  const btn = document.getElementById('startBtn');
+  btn.disabled = true;
+  logEl.style.display = 'block';
+  logEl.innerHTML = '';
+  const f = [{ ...state[0] }, { ...state[1] }];
+  f[0].hp = f[0].maxHp; f[1].hp = f[1].maxHp;
+  updateHpBar(1, f[0].hp, f[0].maxHp); updateHpBar(2, f[1].hp, f[1].maxHp);
+  let turn = 1;
+  const order = f[0].atk >= f[1].atk ? [0,1] : [1,0];
+  const dodgeRate = luk => luk * 0.15 / 100;
+  const critRate  = luk => luk * 0.15 / 100;
+
+  while (f[0].hp > 0 && f[1].hp > 0 && turn <= 50) {
+    addLog(`ターン ${turn}`, 't-turn');
+    await delay(300);
+    for (const ai of order) {
+      if (f[0].hp <= 0 || f[1].hp <= 0) break;
+      const bi = 1 - ai;
+      const atkCls = ai === 0 ? 't-atk1' : 't-atk2';
+      if (Math.random() < dodgeRate(f[bi].luk)) {
+        await triggerAnim(bi+1, 'anim-dodge');
+        addLog(`<span class="${atkCls}">${f[ai].name}</span> の攻撃… <span class="t-dodge">✦ ${f[bi].name} は かわした！</span>`);
+        await delay(600); continue;
+      }
+      const isCrit = Math.random() < critRate(f[ai].luk);
+      const raw = Math.max(1, f[ai].atk - Math.floor(f[bi].def * 0.4));
+      const dmg = (raw + Math.floor(Math.random() * 6)) * (isCrit ? 2 : 1);
+      f[bi].hp -= dmg;
+      await flashCard(ai+1, isCrit);
+      triggerAnim(bi+1, 'anim-shake');
+      updateHpBar(bi+1, f[bi].hp, f[bi].maxHp);
+      if (isCrit) addLog(`<span class="${atkCls}">${f[ai].name}</span> → <span class="t-crit">★ クリティカル！</span> <span class="t-dmg">${dmg}</span> ダメージ（残HP: ${Math.max(0,f[bi].hp)}）`);
+      else        addLog(`<span class="${atkCls}">${f[ai].name}</span> → <span class="t-dmg">${dmg}</span> ダメージ（残HP: ${Math.max(0,f[bi].hp)}）`);
+      await delay(600);
+    }
+    turn++;
+  }
+  const winner = f[0].hp > 0 ? f[0] : f[1].hp > 0 ? f[1] : (f[0].hp >= f[1].hp ? f[0] : f[1]);
+  addLog(`🏆 ${winner.name} の勝利！（${turn-1}ターン）`, 't-win');
+  btn.disabled = false; btn.textContent = 'もう一度';
+}
+
+summon(1); summon(2);
+</script>
+</body>
+</html>
