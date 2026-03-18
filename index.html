@@ -35,6 +35,10 @@ h1 { font-size: 11px; letter-spacing: 0.2em; color: #888; text-transform: upperc
 .card-empty { display: flex; align-items: center; justify-content: center; height: 160px; font-size: 12px; color: #555; }
 .vid-title { font-size: 10px; color: #555; margin-bottom: 2px; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fighter-name { font-size: 16px; font-weight: 500; margin-bottom: 12px; letter-spacing: 0.03em; }
+.img-row { display: flex; gap: 6px; margin-bottom: 10px; }
+.img-row img { width: 50%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; background: #222; display: block; }
+.img-row img.thumb { aspect-ratio: 16/9; }
+.thumb-solo { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; background: #222; display: block; }
 .bars { display: flex; flex-direction: column; gap: 8px; }
 .bar-row { display: flex; align-items: center; gap: 8px; }
 .bar-label { font-size: 10px; color: #666; width: 28px; letter-spacing: 0.05em; }
@@ -69,15 +73,6 @@ h1 { font-size: 11px; letter-spacing: 0.2em; color: #888; text-transform: upperc
 .t-crit  { color: #FFD700; font-weight: 700; }
 .t-dodge { color: #B06AE8; font-weight: 700; }
 .t-win   { font-size: 14px; font-weight: 500; text-align: center; padding: 10px 0 4px; color: #e8e8e8; }
-.thumb {
-  width: 100%; aspect-ratio: 1/1; object-fit: cover;
-  border-radius: 6px; margin-bottom: 10px; background: #222; display: block;
-}
-.thumb-placeholder {
-  width: 100%; aspect-ratio: 1/1; border-radius: 6px; margin-bottom: 10px;
-  background: #222; display: flex; align-items: center; justify-content: center;
-  font-size: 11px; color: #444;
-}
 @keyframes shake {
   0%   { transform: translateX(0); }
   15%  { transform: translateX(-10px); }
@@ -101,7 +96,6 @@ h1 { font-size: 11px; letter-spacing: 0.2em; color: #888; text-transform: upperc
 <body>
 <div id="app">
   <h1>YouTube バトラー — URLからファイターを召喚せよ</h1>
-
   <div>
     <div class="section-label">ファイター 1 — YouTube URL</div>
     <div class="input-row">
@@ -116,13 +110,11 @@ h1 { font-size: 11px; letter-spacing: 0.2em; color: #888; text-transform: upperc
       <button onclick="summon(2)">召喚</button>
     </div>
   </div>
-
   <div class="arena">
     <div id="c1" class="card p1"><div class="card-empty">URLを入力して召喚</div></div>
     <div class="vs-col">VS</div>
     <div id="c2" class="card p2"><div class="card-empty">URLを入力して召喚</div></div>
   </div>
-
   <button class="start-btn" id="startBtn" onclick="battle()" disabled>バトル開始</button>
   <div id="log" class="log-area" style="display:none"></div>
 </div>
@@ -131,13 +123,32 @@ h1 { font-size: 11px; letter-spacing: 0.2em; color: #888; text-transform: upperc
 const state = [null, null];
 
 const CHAR_IMAGES = [
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJcAAACGCAYAAADQFRhHAACZ8klEQVR4nLz9d5wlx1nvj7+rOp18JufZ3dmcV6ucbdmWLONsHDFg+xq+cA2XDBcuXODCBWOSweRgYxtj4xwEcpJlW7KytNLuanOYsJPnzMzJ53Sq+v3R58ycmZ1dycD91eu1O6e7q6u7q576wud56imhtSYqCpD8VxYNiP+SmtH1F99es6jGrXLtU5qfLEArjUYThiHCkNTrLm6trpXWoAPa29uFUgrTNBHCQAjRaGjd21zh5bQGIdZW2Liqbvn9H/nWjcqVn/Sfb/uF25Qb/nzBZvQL1mKDh/3Ha4rvs71mkRFhKUC13C9AC1BoQqGjehgYwuDxxx/Xr3vDa7j9jpv5mZ/9aWq1mtahQutowBUajSKak/rynliZrI1ronkUnXnhaXS1b9Ub/LrSaLwQYb24MXyxZaP3Na/+Ki+2mcvbWN+eRiMQLTP5hdt4obNrq1yp4Y3PN4dQoBESDCRCwNziAo899wzaAGmbWLYtbDuG0mrlG1aHp4XDNIlo5Vmi5Y31mqONy8ZEtcqzm8d6pW295s7V2rS86frWxJrWGrVfYExa213b/tXHRayKxWYjrY+9vPkrP3z1nss/+sW10/oJV7r/v6JorVdEopQSrWF+IaePnjhO3Qh57MwJ6r6LO7+MrHmknDjv/dF3M7J1RMjGW0nZwulbxezKsK4X5S/my6/2+/I7Go/csNZ6cnih81e8WwNCoLVGCPEi365xVWu97p/a4NzG/9QG9VXLv43rv/h/V6uvtEarq7yrutJ5hVIKrUKUCgmCAD8I+b0//EMtLKl3vOwm/ZA7px9SS/r9X/64Fp0xLbJx/dDjj+i67+J6LmGoLn+W2uj9XrhfVct1tebv2v7c6J711zbud7XBs682xmrlHb7f8VrfHy1iUYMWkcKKapkXrXQKrbS6lpHrDc+0HrfqtS9mBmw041rbvSIvv5I6sfJZIhJpQiMNiQYyHRmEVBRUjbP5eWTc4cjkGYRwIZ4glslgmjYGECofpQRCmtCY0WsfINeIyqt9zRou0vghrnJX6z1X+uTL+3N9P60XaJfzs3U2yBVav8LINYF=',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/01_slime_king.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/02_fire_dragon.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/03_skeleton_warrior.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/04_beholder.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/05_dark_bat_demon.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/06_werewolf.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/07_skeleton_mage.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/08_red_devil.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/09_orc_warrior.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/10_minotaur_axe.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/11_jellyfish.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/12_golem.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/13_griffin.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/14_mimic_chest.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/15_succubus.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/16_armored_dragon.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/17_owl_guardian.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/18_orc_shaman.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/19_manticore.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/20_kraken.png',
 ];
 
 const usedIdxs = new Set();
 function randomImageUrl() {
-  const unused = CHAR_IMAGES.map((_,i)=>i).filter(i => !usedIdxs.has(i));
-  const pool = unused.length > 0 ? unused : CHAR_IMAGES.map((_,i)=>i);
+  const unused = CHAR_IMAGES.map((_,i) => i).filter(i => !usedIdxs.has(i));
+  const pool = unused.length > 0 ? unused : CHAR_IMAGES.map((_,i) => i);
   const idx = pool[Math.floor(Math.random() * pool.length)];
   usedIdxs.add(idx);
   if (usedIdxs.size >= CHAR_IMAGES.length) usedIdxs.clear();
@@ -178,13 +189,13 @@ async function summon(idx) {
   const atk = statFrom(vid, 'atk');
   const def = statFrom(vid, 'def');
   const luk = statFrom(vid, 'luk');
+  const charImg = randomImageUrl();
 
-  const thumb = randomImageUrl();
-
+  let thumb = '';
   let title = '';
   try {
     const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${vid}&format=json`);
-    if (res.ok) { const d = await res.json(); title = d.title || ''; }
+    if (res.ok) { const d = await res.json(); thumb = d.thumbnail_url || ''; title = d.title || ''; }
   } catch {}
 
   state[idx-1] = { vid, url, name: makeName(vid), hp, maxHp: hp, atk, def, luk, thumb, charImg, title };
@@ -199,12 +210,18 @@ function renderCard(idx) {
   const f = state[idx-1];
   if (!f) return;
   const hpPct = Math.round(f.hp / f.maxHp * 100);
-  const imgHtml = f.thumb
-    ? `<div style="display:flex;gap:6px;margin-bottom:10px;">
-        <img style="width:50%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:#222;" src="${f.thumb}" alt="" onerror="this.style.display='none'">
-        <img style="width:50%;aspect-ratio:1/1;object-fit:cover;border-radius:6px;background:#222;" src="${f.charImg}" alt="" onerror="this.style.display='none'">
-       </div>`
-    : `<img class="thumb" src="${f.charImg}" alt="" onerror="this.style.display='none'">`;
+
+  let imgHtml;
+  if (f.thumb) {
+    imgHtml = `
+      <div class="img-row">
+        <img class="thumb" src="${f.thumb}" alt="" onerror="this.style.display='none'">
+        <img src="${f.charImg}" alt="" onerror="this.style.display='none'">
+      </div>`;
+  } else {
+    imgHtml = `<img class="thumb-solo" src="${f.charImg}" alt="" onerror="this.style.display='none'">`;
+  }
+
   document.getElementById('c' + idx).innerHTML = `
     ${imgHtml}
     <div class="vid-title">${f.title || f.vid}</div>
