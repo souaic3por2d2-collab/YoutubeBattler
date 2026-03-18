@@ -187,7 +187,7 @@ async function summon(idx) {
     if (res.ok) { const d = await res.json(); title = d.title || ''; }
   } catch {}
 
-  state[idx-1] = { vid, url, name: makeName(vid), hp, maxHp: hp, atk, def, luk, thumb, title };
+  state[idx-1] = { vid, url, name: makeName(vid), hp, maxHp: hp, atk, def, luk, thumb, charImg, title };
   renderCard(idx);
   if (state[0] && state[1]) {
     document.getElementById('startBtn').disabled = false;
@@ -200,8 +200,11 @@ function renderCard(idx) {
   if (!f) return;
   const hpPct = Math.round(f.hp / f.maxHp * 100);
   const imgHtml = f.thumb
-    ? `<img class="thumb" src="${f.thumb}" alt="" onerror="this.style.display='none'">`
-    : `<div class="thumb-placeholder">NO IMAGE</div>`;
+    ? `<div style="display:flex;gap:6px;margin-bottom:10px;">
+        <img style="width:50%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:#222;" src="${f.thumb}" alt="" onerror="this.style.display='none'">
+        <img style="width:50%;aspect-ratio:1/1;object-fit:cover;border-radius:6px;background:#222;" src="${f.charImg}" alt="" onerror="this.style.display='none'">
+       </div>`
+    : `<img class="thumb" src="${f.charImg}" alt="" onerror="this.style.display='none'">`;
   document.getElementById('c' + idx).innerHTML = `
     ${imgHtml}
     <div class="vid-title">${f.title || f.vid}</div>
