@@ -143,6 +143,26 @@ const CHAR_IMAGES = [
   'https://souaic3por2d2-collab.github.io/YTBTLCHARA/18_orc_shaman.png',
   'https://souaic3por2d2-collab.github.io/YTBTLCHARA/19_manticore.png',
   'https://souaic3por2d2-collab.github.io/YTBTLCHARA/20_kraken.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/21_slime.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/22_fire_dragon.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/23_skeleton_warrior.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/24_beholder.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/25_bat.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/26_werewolf.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/27_ghost.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/28_red_devil.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/29_zombie.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/30_minotaur.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/31_jellyfish.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/32_golem.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/33_griffin.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/34_mimic_chest.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/35_succubus.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/36_hydra.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/37_owl.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/38_orc.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/39_manticore.png',
+  'https://souaic3por2d2-collab.github.io/YTBTLCHARA/40_kraken.png',
 ];
 
 const usedIdxs = new Set();
@@ -221,8 +241,7 @@ function renderCard(idx) {
 
   document.getElementById('c' + idx).innerHTML = `
     ${imgHtml}
-    <div class="vid-title">${f.title || f.vid}</div>
-    <div class="fighter-name">${f.name}</div>
+    <div class="fighter-name">${(f.title || f.url).slice(0, 20)}</div>
     <div class="bars">
       <div class="bar-row"><div class="bar-label">HP</div><div class="bar-track"><div class="bar-fill hp" id="hpbar${idx}" style="width:${hpPct}%"></div></div><div class="bar-val" id="hpval${idx}">${Math.max(0,f.hp)}</div></div>
       <div class="bar-row"><div class="bar-label">ATK</div><div class="bar-track"><div class="bar-fill atk" style="width:${f.atk}%"></div></div><div class="bar-val">${f.atk}</div></div>
