@@ -300,6 +300,8 @@ async function battle() {
   logEl.style.display = 'block';
   logEl.innerHTML = '';
   const f = [{ ...state[0] }, { ...state[1] }];
+  f[0].displayName = (f[0].title || f[0].url).slice(0, 40);
+  f[1].displayName = (f[1].title || f[1].url).slice(0, 40);
   f[0].hp = f[0].maxHp; f[1].hp = f[1].maxHp;
   updateHpBar(1, f[0].hp, f[0].maxHp); updateHpBar(2, f[1].hp, f[1].maxHp);
   let turn = 1;
@@ -316,7 +318,7 @@ async function battle() {
       const atkCls = ai === 0 ? 't-atk1' : 't-atk2';
       if (Math.random() < dodgeRate(f[bi].luk)) {
         await triggerAnim(bi+1, 'anim-dodge');
-        addLog(`<span class="${atkCls}">${f[ai].name}</span> の攻撃… <span class="t-dodge">✦ ${f[bi].name} は かわした！</span>`);
+        addLog(`<span class="${atkCls}">${f[ai].displayName}</span> の攻撃… <span class="t-dodge">✦ ${f[bi].displayName} は かわした！</span>`);
         await delay(600); continue;
       }
       const isCrit = Math.random() < critRate(f[ai].luk);
@@ -326,14 +328,14 @@ async function battle() {
       await flashCard(ai+1, isCrit);
       triggerAnim(bi+1, 'anim-shake');
       updateHpBar(bi+1, f[bi].hp, f[bi].maxHp);
-      if (isCrit) addLog(`<span class="${atkCls}">${f[ai].name}</span> → <span class="t-crit">★ クリティカル！</span> <span class="t-dmg">${dmg}</span> ダメージ（残HP: ${Math.max(0,f[bi].hp)}）`);
-      else        addLog(`<span class="${atkCls}">${f[ai].name}</span> → <span class="t-dmg">${dmg}</span> ダメージ（残HP: ${Math.max(0,f[bi].hp)}）`);
+      if (isCrit) addLog(`<span class="${atkCls}">${f[ai].displayName}</span> → <span class="t-crit">★ クリティカル！</span> <span class="t-dmg">${dmg}</span> ダメージ（残HP: ${Math.max(0,f[bi].hp)}）`);
+      else        addLog(`<span class="${atkCls}">${f[ai].displayName}</span> → <span class="t-dmg">${dmg}</span> ダメージ（残HP: ${Math.max(0,f[bi].hp)}）`);
       await delay(600);
     }
     turn++;
   }
   const winner = f[0].hp > 0 ? f[0] : f[1].hp > 0 ? f[1] : (f[0].hp >= f[1].hp ? f[0] : f[1]);
-  addLog(`🏆 ${winner.name} の勝利！（${turn-1}ターン）`, 't-win');
+  addLog(`🏆 ${winner.displayName} の勝利！（${turn-1}ターン）`, 't-win');
   btn.disabled = false; btn.textContent = 'もう一度';
 }
 
